@@ -1,0 +1,34 @@
+{
+  "instances_path": "Archive/annotations/instances_val2017.json",
+  "keypoints_path": "Archive/annotations/person_keypoints_val2017.json",
+  "include_non_keypoints": false,
+  "outdoor_reference_categories": [
+    "traffic light",
+    "stop sign",
+    "fire hydrant",
+    "parking meter",
+    "bench"
+  ],
+  "indoor_reference_categories": [
+    "microwave",
+    "oven",
+    "refrigerator",
+    "sink",
+    "toaster",
+    "tv",
+    "laptop",
+    "keyboard",
+    "mouse",
+    "remote"
+  ],
+  "counts": {
+    "indoor": 717,
+    "outdoor": 549,
+    "ambiguous": 11
+  },
+  "outputs": {
+    "indoor": "images_indoor.json",
+    "outdoor": "images_outdoor.json",
+    "ambiguous": "images_ambiguous.json"
+  }
+}
