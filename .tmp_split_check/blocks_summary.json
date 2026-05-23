@@ -46,13 +46,13 @@
     "dining table"
   ],
   "counts": {
-    "indoor": 1559,
-    "outdoor": 1670,
-    "ambiguous": 178
+    "indoor": 609,
+    "outdoor": 894,
+    "ambiguous": 112
   },
   "outputs": {
-    "indoor": "images_indoor.json",
-    "outdoor": "images_outdoor.json",
-    "ambiguous": "images_ambiguous.json"
+    "indoor": ".tmp_split_check\\images_indoor.json",
+    "outdoor": ".tmp_split_check\\images_outdoor.json",
+    "ambiguous": ".tmp_split_check\\images_ambiguous.json"
   }
 }
