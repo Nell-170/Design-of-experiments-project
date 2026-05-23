@@ -46,9 +46,9 @@
     "dining table"
   ],
   "counts": {
-    "indoor": 1559,
-    "outdoor": 1670,
-    "ambiguous": 178
+    "indoor": 609,
+    "outdoor": 894,
+    "ambiguous": 112
   },
   "outputs": {
     "indoor": "images_indoor.json",
