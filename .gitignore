@@ -15,8 +15,7 @@ downloads/
 eggs/
 .eggs/
 lib/
-lib64/
-parts/
+lib64/parts/
 sdist/
 var/
 wheels/
@@ -206,5 +205,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-annotations/*
-val2017/*
+# -------------------------------------------------------------------------
+# Datasets y archivos pesados de proyectos
+# -------------------------------------------------------------------------
+Archive/
