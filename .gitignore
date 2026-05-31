@@ -209,3 +209,4 @@ __marimo__/
 # Datasets y archivos pesados de proyectos
 # -------------------------------------------------------------------------
 Archive/
+*.task

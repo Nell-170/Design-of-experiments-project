@@ -1,0 +1,18 @@
+# Dependencias del experimento factorial 2x3
+# BlazePose vs MoveNet × Resolución (alta/media/baja)
+#
+# Crear y activar el entorno:
+#   python3.12 -m venv .venv
+#   source .venv/bin/activate          # macOS/Linux
+#   .venv\Scripts\activate             # Windows
+#
+# Instalar:
+#   pip install -r dependencies.txt
+
+mediapipe==0.10.35
+tensorflow==2.21.0
+tensorflow-hub==0.16.1
+opencv-python==4.13.0.92
+numpy
+setuptools<70
+packaging

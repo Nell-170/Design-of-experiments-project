@@ -106,8 +106,8 @@ def download_and_organize(
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--indoor-json", default="images_indoor.json")
-    parser.add_argument("--outdoor-json", default="images_outdoor.json")
+    parser.add_argument("--indoor-json", default="data/images_indoor.json")
+    parser.add_argument("--outdoor-json", default="data/images_outdoor.json")
     parser.add_argument("--output-dir", default="Archive/images",
                         help="Directorio raíz donde se crean indoor/ y outdoor/")
     parser.add_argument("--workers", type=int, default=16,

@@ -9,7 +9,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--instances", default="Archive/annotations/instances_val2017.json")
     parser.add_argument("--keypoints", default="Archive/annotations/person_keypoints_val2017.json")
-    parser.add_argument("--output-dir", default=".")
+    parser.add_argument("--output-dir", default="data")
 
     # If this flag is included, images without keypoints are accepted
     parser.add_argument("--include-non-keypoints", action="store_true")
