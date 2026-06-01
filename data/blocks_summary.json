@@ -51,8 +51,8 @@
     "ambiguous": 112
   },
   "outputs": {
-    "indoor": "images_indoor.json",
-    "outdoor": "images_outdoor.json",
-    "ambiguous": "images_ambiguous.json"
+    "indoor": "data/images_indoor.json",
+    "outdoor": "data/images_outdoor.json",
+    "ambiguous": "data/images_ambiguous.json"
   }
 }
