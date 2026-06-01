@@ -1,4 +1,5 @@
 import json
+import csv
 import random
 import time
 import math
@@ -142,7 +143,10 @@ def main():
     }
     
     results_summary = {alg: {res: [] for res in RESOLUTIONS} for alg in ALGORITHMS}
-    
+
+    # Filas que se volcarán al CSV (una por corrida)
+    csv_rows = []
+
     print(f"Total de observaciones: {len(runs)}")
     print("Iniciando experimento...\n")
     
@@ -244,10 +248,34 @@ def main():
             pck = 0.0
             
         results_summary[alg][res].append(pck)
-        
+
+        # Acumular fila para el CSV
+        csv_rows.append({
+            'image_id': img_info['image_id'],
+            'file_name': img_info['file_name'],
+            'block': img_info['block'],
+            'algorithm': alg,
+            'resolution': res,
+            'pck': round(pck, 2),
+            'kp_vis': visible_gt,
+            'kp_det': detected,
+            'tiempo_ms': round(elapsed_ms, 1),
+        })
+
         # 7. Imprimir resultados por consola
         # Formato: [run_order] image_id | bloque | algoritmo | resolucion | PCK=XX.X% | kp_vis=N | kp_det=M | tiempo=Xms
         print(f"[{idx+1:4d}] {img_info['image_id']:10d} | {img_info['block']:7s} | {alg:10s} | {res:6s} | PCK={pck:5.1f}% | kp_vis={visible_gt:2d} | kp_det={detected:2d} | tiempo={elapsed_ms:4.0f}ms")
+
+    # Guardar resultados en CSV
+    csv_path = 'resultados.csv'
+    with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=['image_id', 'file_name', 'block', 'algorithm', 'resolution', 'pck', 'kp_vis', 'kp_det', 'tiempo_ms']
+        )
+        writer.writeheader()
+        writer.writerows(csv_rows)
+    print(f"\nCSV guardado en: {csv_path}  ({len(csv_rows)} filas)")
 
     # Imprimir resumen final
     print("\n=== RESUMEN ===")
