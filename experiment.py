@@ -14,7 +14,7 @@ from mediapipe.tasks.python import vision
 
 # Configuraciones
 SEED = 42
-N_IMAGES_PER_GROUP = 150
+N_IMAGES_PER_GROUP = 300
 ALGORITHMS = ['blazepose', 'movenet']
 RESOLUTIONS = ['high', 'medium', 'low']
 
