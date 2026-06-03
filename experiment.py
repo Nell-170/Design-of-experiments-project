@@ -14,7 +14,18 @@ from mediapipe.tasks.python import vision
 
 # Configuraciones
 SEED = 42
-N_IMAGES_PER_GROUP = 300
+
+# Diseño factorial 2x3 (algoritmo x resolución) en bloques (indoor/outdoor).
+# Cada imagen se usa UNA sola vez (una observación por imagen) y no se repite
+# entre grupos: indoor y outdoor son conjuntos disjuntos.
+#
+#   imágenes totales = observaciones totales = N_IMAGES_PER_GROUP x 2 bloques
+#
+# Para 1200 imágenes = 1200 observaciones, balanceadas en cada celda:
+#   N_IMAGES_PER_GROUP = 600  -> 600 indoor + 600 outdoor = 1200 imágenes
+#   6 tratamientos (2 alg x 3 res) x 2 bloques = 12 celdas
+#   1200 / 12 = 100 imágenes por celda (100 observaciones por celda)
+N_IMAGES_PER_GROUP = 600
 ALGORITHMS = ['blazepose', 'movenet']
 RESOLUTIONS = ['high', 'medium', 'low']
 
@@ -74,36 +85,63 @@ def main():
     rnd_sel = random.Random(SEED)
     rnd_sel.shuffle(indoor_valid)
     rnd_sel.shuffle(outdoor_valid)
-    
-    # Tomar las primeras 150 de cada bloque
-    indoor_selected = indoor_valid[:N_IMAGES_PER_GROUP]
+
+    # Número de tratamientos (combinaciones algoritmo x resolución)
+    n_treatments = len(ALGORITHMS) * len(RESOLUTIONS)  # 6
+
+    # Garantizar que ambos grupos tengan EXACTAMENTE la misma cantidad de
+    # imágenes y que ese número sea divisible entre los tratamientos, para que
+    # cada celda (bloque x tratamiento) quede perfectamente balanceada. Si algún
+    # bloque tiene menos imágenes válidas, se recorta hacia abajo manteniendo el
+    # balance.
+    n_per_group = min(N_IMAGES_PER_GROUP, len(indoor_valid), len(outdoor_valid))
+    n_per_group = (n_per_group // n_treatments) * n_treatments  # múltiplo de 6
+    per_cell = n_per_group // n_treatments  # imágenes por celda y por bloque
+    if n_per_group < N_IMAGES_PER_GROUP:
+        print(f"AVISO: se pidieron {N_IMAGES_PER_GROUP} por grupo, pero solo hay "
+              f"{len(indoor_valid)} indoor y {len(outdoor_valid)} outdoor válidas.")
+        print(f"       Se usarán {n_per_group} por grupo ({per_cell} por celda, "
+              f"{n_per_group * 2} imágenes/observaciones en total).")
+
+    # Tomar las primeras n_per_group de cada bloque
+    indoor_selected = indoor_valid[:n_per_group]
     for img in indoor_selected:
         img['block'] = 'indoor'
         img['path'] = os.path.join('Archive', 'images', 'indoor', img['file_name'])
         
-    outdoor_selected = outdoor_valid[:N_IMAGES_PER_GROUP]
+    outdoor_selected = outdoor_valid[:n_per_group]
     for img in outdoor_selected:
         img['block'] = 'outdoor'
         img['path'] = os.path.join('Archive', 'images', 'outdoor', img['file_name'])
         
-    # Unir y volver a mezclar
-    selected_images = indoor_selected + outdoor_selected
-    rnd_sel.shuffle(selected_images)
+    # Unir bloques (cada uno ya está acotado a n_per_group imágenes únicas)
     
-    # 3. Construir la lista de corridas aleatorizada
+    # 3. Construir la lista de corridas (UNA observación por imagen)
     print("Construyendo lista de corridas...")
-    runs = []
-    for img in selected_images:
-        for alg in ALGORITHMS:
-            for res in RESOLUTIONS:
-                runs.append({
-                    'image': img,
-                    'algorithm': alg,
-                    'resolution': res
-                })
-                
-    # Aleatorizar el orden del experimento
+
+    # Las 6 combinaciones de tratamiento (algoritmo x resolución)
+    treatments = [(alg, res) for alg in ALGORITHMS for res in RESOLUTIONS]
+
     rnd_run = random.Random(SEED + 1)
+    runs = []
+
+    # Para cada bloque, asignar tratamientos de forma balanceada: 'per_cell'
+    # imágenes a cada uno de los 6 tratamientos. Cada imagen recibe exactamente
+    # un tratamiento, por lo que no se repite entre corridas ni entre grupos.
+    for block_images in (indoor_selected, outdoor_selected):
+        assignment = []
+        for t in treatments:
+            assignment.extend([t] * per_cell)  # per_cell veces cada tratamiento
+        rnd_run.shuffle(assignment)            # mezclar qué imagen recibe qué tratamiento
+
+        for img, (alg, res) in zip(block_images, assignment):
+            runs.append({
+                'image': img,
+                'algorithm': alg,
+                'resolution': res
+            })
+
+    # Aleatorizar el orden de ejecución del experimento
     rnd_run.shuffle(runs)
     
     # Cargar modelos
@@ -152,6 +190,9 @@ def main():
     
     # Ejecutar corridas
     for idx, run in enumerate(runs):
+        # Orden de corrida (1-based) según el orden aleatorizado del experimento
+        orden_corrida = idx + 1
+
         img_info = run['image']
         alg = run['algorithm']
         res = run['resolution']
@@ -160,7 +201,7 @@ def main():
         # Cargar imagen
         img_bgr = cv2.imread(img_path)
         if img_bgr is None:
-            print(f"[{idx+1:4d}] Error: No se pudo cargar imagen {img_path}")
+            print(f"[{orden_corrida:4d}] Error: No se pudo cargar imagen {img_path}")
             continue
             
         h_orig, w_orig = img_bgr.shape[:2]
@@ -249,8 +290,9 @@ def main():
             
         results_summary[alg][res].append(pck)
 
-        # Acumular fila para el CSV
+        # Acumular fila para el CSV (incluye el orden de corrida)
         csv_rows.append({
+            'orden_corrida': orden_corrida,
             'image_id': img_info['image_id'],
             'file_name': img_info['file_name'],
             'block': img_info['block'],
@@ -264,14 +306,14 @@ def main():
 
         # 7. Imprimir resultados por consola
         # Formato: [run_order] image_id | bloque | algoritmo | resolucion | PCK=XX.X% | kp_vis=N | kp_det=M | tiempo=Xms
-        print(f"[{idx+1:4d}] {img_info['image_id']:10d} | {img_info['block']:7s} | {alg:10s} | {res:6s} | PCK={pck:5.1f}% | kp_vis={visible_gt:2d} | kp_det={detected:2d} | tiempo={elapsed_ms:4.0f}ms")
+        print(f"[{orden_corrida:4d}] {img_info['image_id']:10d} | {img_info['block']:7s} | {alg:10s} | {res:6s} | PCK={pck:5.1f}% | kp_vis={visible_gt:2d} | kp_det={detected:2d} | tiempo={elapsed_ms:4.0f}ms")
 
     # Guardar resultados en CSV
     csv_path = 'resultados.csv'
     with open(csv_path, 'w', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(
             f,
-            fieldnames=['image_id', 'file_name', 'block', 'algorithm', 'resolution', 'pck', 'kp_vis', 'kp_det', 'tiempo_ms']
+            fieldnames=['orden_corrida', 'image_id', 'file_name', 'block', 'algorithm', 'resolution', 'pck', 'kp_vis', 'kp_det', 'tiempo_ms']
         )
         writer.writeheader()
         writer.writerows(csv_rows)
