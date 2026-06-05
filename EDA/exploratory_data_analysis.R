@@ -64,6 +64,7 @@ aggregate(pck ~ resolution,
 aggregate(pck ~ resolution,
           data=data,
           FUN=sd)
+          
 # Boxplot por res
 boxplot(pck ~ resolution, data = data, col = c("#EC7063","#F4D03F","#5DADE2"),
         ylab = "PCK@0.5 (%)", xlab = "Resolucion", main = "Por resolucion")
@@ -87,7 +88,7 @@ boxplot(pck ~ algorithm*resolution,
         las=2)
 par(mar = c(8, 4, 4, 1))
 boxplot(pck ~ algorithm*resolution, data = data,
-        col = rep(c("#F5B041","#52BE80"), each = 3),
+        col = rep(c("#F5B041","#52BE80"), times = 3),
         las = 2, ylab = "PCK@0.5 (%)", xlab = "",
         main = "PCK@0.5 por tratamiento (Algoritmo x Resolucion)")
 par(mar = c(5, 4, 4, 2))
@@ -128,6 +129,7 @@ interaction.plot(data$resolution, data$block, data$pck,
                  trace.label = "Entorno",
                  main = "Interaccion Resolucion x Entorno")
 
-# Grafico dispersion entre variables
-ggplot(data, aes(x = data$algorithm, y = data$resolution)) +
-geom_point()
+""" Grafico dispersion entre variables -> NO APORTA NADA, PODEMOS QUITARLO (Ya hablé de esto con Anabel, ella opina igual,
+    dado que los factores son categoricos, no tiene sentido hacer un diagrama de dispersión). 
+#ggplot(data, aes(x = data$algorithm, y = data$resolution)) +
+#geom_point() """
