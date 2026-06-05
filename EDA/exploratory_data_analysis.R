@@ -6,6 +6,10 @@ data$algorithm <- as.factor(data$algorithm)
 data$resolution <- as.factor(data$resolution)
 data$block <- as.factor(data$block)
 
+# =============================================================================
+#  3.1  VARIABLE DE RESPUESTA (GLOBAL)
+# =============================================================================
+
 # Estadisticos Descriptivos de PCK
 summary(data$pck)
 
@@ -34,6 +38,10 @@ plot(data$orden_corrida, data$pck, pch = 16, cex = 0.4, col = "#5499C7",
      xlab = "Orden de corrida", ylab = "PCK@0.5 (%)",
      main = "PCK@0.5 segun el orden de ejecucion (aleatorizado)")
 abline(h = mean(data$pck), col = "red", lty = 2)
+
+# =============================================================================
+#  3.2  VARIABLE DE RESPUESTA POR FACTOR Y NIVELES
+# =============================================================================
 
 # PCK por factor algo
 aggregate(pck ~ algorithm,
@@ -92,4 +100,34 @@ boxplot(pck ~ resolution + algorithm + block, data = data,
         main = "PCK@0.5 por celda (Algoritmo x Resolucion x Entorno)")
 par(mar = c(5, 4, 4, 2))
 
+# =============================================================================
+#  3.3 — INTERACCIONES
+# =============================================================================
 
+# Algo x Res
+interaction.plot(data$resolution, data$algorithm, data$pck,
+                 fun = mean, type = "b", pch = c(16, 17), lwd = 2,
+                 col = c("#F5B041","#52BE80"),
+                 xlab = "Resolucion", ylab = "Media de PCK@0.5 (%)",
+                 trace.label = "Algoritmo",
+                 main = "Interaccion Algoritmo x Resolucion")
+
+# Algo x Entorno
+interaction.plot(data$block, data$algorithm, data$pck,
+                 fun = mean, type = "b", pch = c(16, 17), lwd = 2,
+                 col = c("#F5B041","#52BE80"),
+                 xlab = "Entorno", ylab = "Media de PCK@0.5 (%)",
+                 trace.label = "Algoritmo",
+                 main = "Interaccion Algoritmo x Entorno")
+
+# Res x Entorno
+interaction.plot(data$resolution, data$block, data$pck,
+                 fun = mean, type = "b", pch = c(16, 17), lwd = 2,
+                 col = c("#AF7AC5","#5DADE2"),
+                 xlab = "Resolucion", ylab = "Media de PCK@0.5 (%)",
+                 trace.label = "Entorno",
+                 main = "Interaccion Resolucion x Entorno")
+
+# Grafico dispersion entre variables
+ggplot(data, aes(x = data$algorithm, y = data$resolution)) +
+geom_point()
