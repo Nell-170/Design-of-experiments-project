@@ -93,13 +93,20 @@ boxplot(pck ~ algorithm*resolution, data = data,
         main = "PCK@0.5 por tratamiento (Algoritmo x Resolucion)")
 par(mar = c(5, 4, 4, 2))
 
+# 1. Aumentamos el margen inferior de 10 a 14 para dar más espacio al texto largo
+par(mar = c(14, 4, 4, 1))
+
 #Boxplot Combinado Algo * Res * Bloc
-par(mar = c(10, 4, 4, 1))
 boxplot(pck ~ resolution + algorithm + block, data = data,
         col = rep(c("#F5B041","#52BE80"), each = 3, times = 2),
-        las = 2, ylab = "PCK@0.5 (%)", xlab = "",
+        las = 2, 
+        cex.axis = 0.75, # <-- NUEVO: Reduce un poco el tamaño de la letra para que quepa bien
+        ylab = "PCK@0.5 (%)", xlab = "",
         main = "PCK@0.5 por celda (Algoritmo x Resolucion x Entorno)")
+
+# Restauramos los márgenes por defecto de R
 par(mar = c(5, 4, 4, 2))
+
 
 # =============================================================================
 #  3.3 — INTERACCIONES
