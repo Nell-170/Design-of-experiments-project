@@ -146,7 +146,26 @@ def main():
     
     # Cargar modelos
     print("Cargando modelo BlazePose...")
-    base_options = mp_python.BaseOptions(model_asset_path='pose_landmarker_heavy.task')
+    model_path = 'pose_landmarker_heavy.task'
+    if not os.path.exists(model_path):
+        print(f"No se encontró el modelo '{model_path}'. Descargándolo desde MediaPipe...")
+        import urllib.request
+        import sys
+        model_url = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task"
+        try:
+            def progress_hook(count, block_size, total_size):
+                pct = min(count * block_size / total_size * 100, 100)
+                sys.stdout.write(f"\rProgreso: {pct:.1f}%")
+                sys.stdout.flush()
+                if pct >= 100:
+                    print()
+            urllib.request.urlretrieve(model_url, model_path, reporthook=progress_hook)
+            print("Modelo descargado con éxito.")
+        except Exception as e:
+            print(f"Error al descargar el modelo: {e}")
+            return
+
+    base_options = mp_python.BaseOptions(model_asset_path=model_path)
     options = vision.PoseLandmarkerOptions(
         base_options=base_options,
         output_segmentation_masks=False)
