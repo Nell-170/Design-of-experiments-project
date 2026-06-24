@@ -2,9 +2,9 @@
 data = (read.csv(file.choose(), header=T, encoding = "UTF-8"))
 
 # Factores
-data$algorithm <- as.factor(data$algorithm)
-data$resolution <- as.factor(data$resolution)
-data$block <- as.factor(data$block)
+data$algorithm  <- factor(data$algorithm,  levels = c("blazepose", "movenet"))
+data$resolution <- factor(data$resolution, levels = c("high", "medium", "low"))
+data$block      <- factor(data$block,      levels = c("indoor", "outdoor"))
 
 # =============================================================================
 #  3.1  VARIABLE DE RESPUESTA (GLOBAL)
@@ -136,7 +136,90 @@ interaction.plot(data$resolution, data$block, data$pck,
                  trace.label = "Entorno",
                  main = "Interaccion Resolucion x Entorno")
 
-#Grafico dispersion entre variables -> NO APORTA NADA, PODEMOS QUITARLO (Ya hablé de esto con Anabel, ella opina igual,
-#    dado que los factores son categoricos, no tiene sentido hacer un diagrama de dispersión). 
-#ggplot(data, aes(x = data$algorithm, y = data$resolution)) +
-#geom_point() """
+# revisar que falta del EDA
+
+# ===========================================================================
+# MODELO PARAMÉTRICO DE REFERENCIA ANOVA
+# ===========================================================================
+
+install.packages("tidyverse")
+library(tidyverse)
+
+alpha <- 0.05
+
+mod_anova <- aov(pck ~ algorithm * resolution + block, data = data)
+
+summary(mod_anova)
+
+# ---------------------------------------------------------------------------
+# VALIDACIÓN DE SUPUESTOS
+# ---------------------------------------------------------------------------
+
+# Histograma de residuales
+hist(mod_anova$residuals)
+
+hist(mod_anova$residuals, breaks = 20, col = "#AED6F1", border = "white",
+     xlab = "Residuales del Anova", ylab = "Frecuencia",
+     main = "Histograma de Residuales del ANOVA")
+
+# QQ Plot de residuales
+qqnorm(mod_anova$residuals, col = "#AED6F1", main = "Gráfico QQ de Residuales del ANOVA")
+qqline(mod_anova$residuals, col = "red")
+
+# Shapiro-Wilk
+shapiro.test(mod_anova$residuals)
+
+#Independencia
+plot(mod_anova$residuals, col = "#AED6F1", main = "Grafico de Dispersión de los Residuales")
+abline(h = mean(mod_anova$residuals), col = "red", lty = 2)
+
+#Homocedasticidad
+plot(mod_anova$fitted, mod_anova$residuals, col = "#AED6F1",
+     xlab = "Valores ajustados",
+     ylab = "Residuos",
+     main = "Gráfico de residuales vs. valores ajustados")
+abline(h = 0, col = "red")
+
+#Prueba de levene
+install.packages("car")
+library(car)
+
+
+inter <- interaction(data$algorithm, data$resolution)
+leveneTest(pck ~ inter, data = data)
+
+# ===========================================================================
+# ANÁLISIS NO PARAMÉTRICO: ALIGNED RANK TRANSFORM (ARTool)
+# ===========================================================================
+
+install.packages("ARTool")
+library(ARTool)
+
+# Se define la transformación con art()
+mod_art <- art(pck ~ algorithm * resolution + (1 | block), data = data)
+
+# y luego se ejecuta un anova() sobre la transformación 
+mod_art_anova <- anova(mod_art)
+
+print(mod_art_anova, verbose = TRUE)
+
+# eta square
+mod_art_anova$eta.sq.part = with(mod_art_anova, (`F` * `Df`) / ((`F` * `Df`) + `Df.res`))
+
+print(mod_art_anova)
+
+# Prueba post-hoc para no paramétrico
+
+#Tuki para la interaccion
+tuki <- art.con(mod_art, "algorithm:resolution", adjust = "tukey")
+summary(tuki)
+
+#Tuki Algo
+tuki_algo <- art.con(mod_art, "algorithm", adjust = "tukey")
+summary(tuki_algo)
+
+#Tuki Res
+tuki_res <- art.con(mod_art, "resolution", adjust = "tukey")
+summary(tuki_res)
+
+# Potencia de la prueba
