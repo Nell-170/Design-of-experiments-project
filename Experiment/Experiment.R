@@ -223,3 +223,24 @@ tuki_res <- art.con(mod_art, "resolution", adjust = "tukey")
 summary(tuki_res)
 
 # Potencia de la prueba
+
+library(pwr)
+
+# 1. Se agrega el eta cuadrado parcial obtenido en ANOVA de ARTool para el factor algoritmo
+eta_parcial_alg <- 0.00495309      
+
+# 2. Se convierte a f2 de Cohen
+f2_cohen_alg <- eta_parcial_alg / (1 - eta_parcial_alg)
+
+# 3. Se calcula la potencia con los Grados de Libertad (Df=1 y Df.res=1193)
+pwr.f2.test(u = 1,              
+            v = 1193,           
+            f2 = f2_cohen_alg,  
+            sig.level = 0.05)
+
+#4. Se calcula la muestra necesaria para alcanzar una potencia de 0.80
+pwr.f2.test(u = 1,              
+            v = NULL,           
+            f2 = f2_cohen_alg,  
+            sig.level = 0.05,
+            power = 0.80)
