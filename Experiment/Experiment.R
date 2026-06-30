@@ -83,10 +83,6 @@ boxplot(pck ~ block,      data = data, col = c("#AF7AC5","#85C1E9"),
         ylab = "PCK@0.5 (%)", xlab = "Entorno",    main = "Por entorno")
 
 #Boxplot Combinado Algo * Res
-boxplot(pck ~ algorithm*resolution,
-        data=data,
-        las=2)
-par(mar = c(8, 4, 4, 1))
 boxplot(pck ~ algorithm*resolution, data = data,
         col = rep(c("#F5B041","#52BE80"), times = 3),
         las = 2, ylab = "PCK@0.5 (%)", xlab = "",
@@ -94,7 +90,7 @@ boxplot(pck ~ algorithm*resolution, data = data,
 par(mar = c(5, 4, 4, 2))
 
 # 1. Aumentamos el margen inferior de 10 a 14 para dar más espacio al texto largo
-par(mar = c(14, 4, 4, 1))
+par(mar = c(9, 4, 4, 1))
 
 #Boxplot Combinado Algo * Res * Bloc
 boxplot(pck ~ resolution + algorithm + block, data = data,
@@ -107,36 +103,45 @@ boxplot(pck ~ resolution + algorithm + block, data = data,
 # Restauramos los márgenes por defecto de R
 par(mar = c(5, 4, 4, 2))
 
-
 # =============================================================================
 #  3.3 — INTERACCIONES
 # =============================================================================
 
 # Algo x Res
-interaction.plot(data$resolution, data$algorithm, data$pck,
-                 fun = mean, type = "b", pch = c(16, 17), lwd = 2,
-                 col = c("#F5B041","#52BE80"),
-                 xlab = "Resolucion", ylab = "Media de PCK@0.5 (%)",
-                 trace.label = "Algoritmo",
-                 main = "Interaccion Algoritmo x Resolucion")
+ggplot(data) +
+    aes(x = resolution, color = algorithm, group = algorithm, y = pck) +
+    stat_summary(fun = mean, geom = "point", size = 2.5) +
+    stat_summary(fun = mean, geom = "line", linewidth = 0.9) +
+    labs(
+        title = "Interacción Algoritmo × Resolución",
+        x = "Resolución",
+        y = "PCK@0.5 (media)",
+        color = "Algoritmo"
+    )
 
 # Algo x Entorno
-interaction.plot(data$block, data$algorithm, data$pck,
-                 fun = mean, type = "b", pch = c(16, 17), lwd = 2,
-                 col = c("#F5B041","#52BE80"),
-                 xlab = "Entorno", ylab = "Media de PCK@0.5 (%)",
-                 trace.label = "Algoritmo",
-                 main = "Interaccion Algoritmo x Entorno")
+ggplot(data) +
+    aes(x = block, color = algorithm, group = algorithm, y = pck) +
+    stat_summary(fun = mean, geom = "point", size = 2.5) +
+    stat_summary(fun = mean, geom = "line", linewidth = 0.9) +
+    labs(
+        title = "Interacción Algoritmo × Bloque",
+        x = "Entorno",
+        y = "PCK@0.5 (media)",
+        color = "Algoritmo"
+    )
 
-# Res x Entorno
-interaction.plot(data$resolution, data$block, data$pck,
-                 fun = mean, type = "b", pch = c(16, 17), lwd = 2,
-                 col = c("#AF7AC5","#5DADE2"),
-                 xlab = "Resolucion", ylab = "Media de PCK@0.5 (%)",
-                 trace.label = "Entorno",
-                 main = "Interaccion Resolucion x Entorno")
-
-# revisar que falta del EDA
+# Entorno x Res
+ggplot(data) +
+    aes(x = resolution, color = block, group = block, y = pck) +
+    stat_summary(fun = mean, geom = "point", size = 2.5) +
+    stat_summary(fun = mean, geom = "line", linewidth = 0.9) +
+    labs(
+        title = "Interacción Bloque × Resolución",
+        x = "Resolución",
+        y = "PCK@0.5 (media)",
+        color = "Entorno"
+    )
 
 # ===========================================================================
 # MODELO PARAMÉTRICO DE REFERENCIA ANOVA
